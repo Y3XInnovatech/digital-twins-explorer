@@ -1,67 +1,56 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-
-/* This code is used for local development purposes only
-Library consumers are responsible for creating server side middleware
-as necessary and appropriate for their scenarios */
-
-const { DefaultAzureCredential } = require("@azure/identity");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
 module.exports = function (app) {
-  // Client identity should always be verified in hosted implementations
-  // DefaultAzureCredential is used for local development purposes only
-  const credentialDigitalTwins = new DefaultAzureCredential();
-  const credentialRBAC = new DefaultAzureCredential();
-  const credentialGraph = new DefaultAzureCredential();
-  let tokenDigitalTwins = null;
-  let tokenRBAC = null;
-  let tokenGraph = null;
-
-  const tokenSetRefresh = async (trToken, trCredential, trContext) => {
-    let tmpTrToken = trToken;
-    if (!tmpTrToken || tmpTrToken.expiresOnTimestamp < Date.now()) {
-      tmpTrToken = await trCredential.getToken(trContext);
-    }
-    return tmpTrToken;
-  };
-
-  const pathRewrite = async (path, req) => {
-    let destinationPath = null;
-    let requestToken = null;
-    if (path.startsWith("/api/proxy/RBAC")) {
-      destinationPath = "/api/proxy/RBAC";
-      tokenRBAC = await tokenSetRefresh(tokenRBAC, credentialRBAC, "https://management.azure.com/.default");
-      requestToken = tokenRBAC;
-    } else if (path.startsWith("/api/proxy/Graph")) {
-      destinationPath = "/api/proxy/Graph";
-      tokenGraph = await tokenSetRefresh(tokenGraph, credentialGraph, "https://graph.microsoft.com/.default");
-      requestToken = tokenGraph;
-    } else {
-      destinationPath = "/api/proxy";
-      tokenDigitalTwins = await tokenSetRefresh(tokenDigitalTwins, credentialDigitalTwins, "https://digitaltwins.azure.net/.default");
-      requestToken = tokenDigitalTwins;
-    }
-    req.headers.authorization = `Bearer ${requestToken.token}`;
-    return path.replace(destinationPath, "");
-  };
-
+  // Proxy for API requests to the local backend server
   app.use(
-    "/api/proxy",
+    "/api",
     createProxyMiddleware({
-      changeOrigin: true,
+      // eslint-disable-next-line line-comment-position, no-inline-comments
+      target: "http://localhost:5000", // Local backend server
+      // eslint-disable-next-line line-comment-position, no-inline-comments
+      changeOrigin: true, // Ensures the Host header matches the target
       headers: {
-        connection: "keep-alive"
+        // eslint-disable-next-line line-comment-position, no-inline-comments
+        connection: "keep-alive" // Keeps the connection alive for better performance
       },
-      target: "/",
       onProxyReq: proxyReq => {
+        // Remove unnecessary headers (e.g., origin and referer) for cleaner requests
         if (proxyReq.getHeader("origin")) {
           proxyReq.removeHeader("origin");
           proxyReq.removeHeader("referer");
         }
-      },
-      pathRewrite,
-      router: req => `https://${req.headers["x-adt-host"]}/`
+      }
     })
   );
+
+  // Proxy for the "/models" endpoint
+  app.use(
+    "/models",
+    createProxyMiddleware({
+      // eslint-disable-next-line line-comment-position, no-inline-comments
+      target: "http://localhost:5000", // Local backend server
+      // eslint-disable-next-line line-comment-position, no-inline-comments
+      changeOrigin: true, // Ensures the Host header matches the target
+      pathRewrite: {
+        // eslint-disable-next-line line-comment-position, no-inline-comments
+        "^/models": "/models" // Optional: Rewrite "/models" if needed
+      }
+    })
+  );
+
+  // Proxy for the "/twins" endpoint
+  app.use(
+    "/twins",
+    createProxyMiddleware({
+      // eslint-disable-next-line line-comment-position, no-inline-comments
+      target: "http://localhost:5000", // Local backend server
+      changeOrigin: true,
+      pathRewrite: {
+        // eslint-disable-next-line line-comment-position, no-inline-comments
+        "^/twins": "/twins" // Optional: Rewrite "/twins" if needed
+      }
+    })
+  );
+
+  // Add additional proxy rules here as needed
 };

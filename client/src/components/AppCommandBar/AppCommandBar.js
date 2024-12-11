@@ -13,6 +13,8 @@ import DeleteAllTwinsComponent from "./DeleteAllTwinsComponent/DeleteAllTwinsCom
 
 import "./AppCommandBar.scss";
 import { KeyboardShortcutsComponents } from "../KeyboardShortcutsComponents/KeyboardShortcutsComponents";
+import dotenv from "dotenv";
+dotenv.config();
 
 class AppCommandBar extends Component {
 
@@ -66,20 +68,31 @@ class AppCommandBar extends Component {
   }
 
   updateAdtUrlSettings = async () => {
+    if (process.env.REACT_APP_USE_LOCAL_MODELS === "true") {
+      // eslint-disable-next-line no-console
+      console.log(
+        "Local models mode enabled. Skipping Azure Digital Twins URL update."
+      );
+      return;
+    }
+
     try {
       const { appAdtUrl } = await configService.getConfig();
-      this.configure.current.loadConfigurationSettings({ type: "start", appAdtUrl });
+      this.configure.current.loadConfigurationSettings({
+        type: "start",
+        appAdtUrl
+      });
     } catch (exc) {
       if (exc.errorCode !== "user_cancelled") {
         exc.customMessage = "Error on saving settings";
         eventService.publishError(exc);
       }
     }
-  }
+  };
 
   togglePreferencesModal = () => {
     this.preferences.current.loadExistingSettings();
-  }
+  };
 
   render() {
     const { farItems } = this.state;
@@ -90,7 +103,8 @@ class AppCommandBar extends Component {
           ariaLabel={this.props.t("appCommandBar.commandBar.ariaLabel")}
           className="app-commandbar" />
         <ConfigurationFormComponent t={this.props.t} ref={this.configure} />
-        <PreferencesFormComponent ref={this.preferences}
+        <PreferencesFormComponent
+          ref={this.preferences}
           toggleHighContrastMode={this.props.toggleHighContrastMode}
           toggleOptionalComponent={this.props.toggleOptionalComponent}
           optionalComponentsState={this.props.optionalComponentsState}
