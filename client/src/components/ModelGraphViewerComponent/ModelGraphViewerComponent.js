@@ -16,26 +16,49 @@ class ModelGraphViewerComponent extends React.Component {
     this.state = {
       isLoading: false,
       // eslint-disable-next-line react/no-unused-state
-      layout: "d3Force"
+      layout: "d3Force",
+      // eslint-disable-next-line line-comment-position, no-inline-comments, react/no-unused-state
+      progress: 0 // Track progress for loading
     };
     this.cyRef = React.createRef();
+    // eslint-disable-next-line line-comment-position, no-inline-comments
+    this.isInitialized = false; // Track if the component is initialized
   }
 
-  // eslint-disable-next-line require-await
-  async componentDidMount() {
-    // Ensure the component is fully initialized before retrieving models
-    setTimeout(async () => {
+  // Method to initialize the component
+  initialize = async () => {
+    if (!this.isInitialized) {
+      this.isInitialized = true;
+
+      // Subscribe to various events
+      eventService.subscribeModelsUpdate(() => {
+        this.retrieveModels();
+      });
+
+      eventService.subscribeClearModelsData(() => {
+        if (this.cyRef.current) {
+          this.cyRef.current.clearNodes();
+        }
+        this.setState({ isLoading: false });
+      });
+
+      eventService.subscribeSelectModel(item => {
+        if (item) {
+          this.highlightNodes(item.key);
+        } else {
+          this.clearHighlights();
+        }
+      });
+
+      // Fetch and display models
       await this.retrieveModels();
-    }, 100);
+    }
+  };
 
-    // Subscribe to model updates
-    eventService.subscribeModelsUpdate(() => {
-      this.retrieveModels();
-    });
-  }
-
+  // Method to fetch models and update the graph
   async retrieveModels() {
-    this.setState({ isLoading: true });
+    // eslint-disable-next-line react/no-unused-state
+    this.setState({ isLoading: true, progress: 0 });
 
     try {
       // eslint-disable-next-line no-console
@@ -43,9 +66,6 @@ class ModelGraphViewerComponent extends React.Component {
 
       // Fetch models from the API
       const response = await fetch("/models");
-      // eslint-disable-next-line no-console
-      console.log("Fetch response:", response);
-
       if (!response.ok) {
         throw new Error(`Error fetching models: ${response.statusText}`);
       }
@@ -54,11 +74,11 @@ class ModelGraphViewerComponent extends React.Component {
       // eslint-disable-next-line no-console
       console.log("Fetched models:", models);
 
-      // Validate and transform models into nodes and relationships
       if (!Array.isArray(models)) {
         throw new Error("Invalid models data: Expected an array.");
       }
 
+      // Transform models into nodes and relationships
       const nodes = models.map(model => ({
         id: model.id,
         label: model.name || model.id
@@ -78,31 +98,48 @@ class ModelGraphViewerComponent extends React.Component {
       // eslint-disable-next-line no-console
       console.log("Relationships:", relationships);
 
-      // Ensure cyRef.current is initialized before using it
+      // Update the graph
       if (this.cyRef.current) {
-        // eslint-disable-next-line no-console
-        console.log("cyRef.current is initialized:", this.cyRef.current);
-
-        // Add nodes and relationships to the graph
-        this.cyRef.current.addNodes(nodes);
-        this.cyRef.current.addRelationships(relationships, "related");
-
-        // Perform layout
-        await this.cyRef.current.doLayout();
-      } else {
-        // eslint-disable-next-line no-console
-        console.warn("cyRef.current is not initialized.");
+        // eslint-disable-next-line line-comment-position, no-inline-comments
+        this.cyRef.current.clearNodes(); // Clear existing nodes
+        // eslint-disable-next-line line-comment-position, no-inline-comments
+        this.cyRef.current.addNodes(nodes); // Add new nodes
+        // eslint-disable-next-line line-comment-position, no-inline-comments
+        this.cyRef.current.addRelationships(relationships, "related"); // Add relationships
+        // eslint-disable-next-line line-comment-position, no-inline-comments
+        await this.cyRef.current.doLayout(); // Perform layout
       }
     } catch (err) {
-      // Log and publish errors
       // eslint-disable-next-line no-console
       console.error("Error in retrieveModels:", err);
       eventService.publishError(err);
     } finally {
-      this.setState({ isLoading: false });
+      // eslint-disable-next-line react/no-unused-state
+      this.setState({ isLoading: false, progress: 100 });
       // eslint-disable-next-line no-console
       console.log("Finished retrieveModels.");
     }
+  }
+
+  // Highlight nodes (e.g., on selection)
+  highlightNodes = nodeId => {
+    if (this.cyRef.current) {
+      this.cyRef.current.clearHighlighting();
+      this.cyRef.current.highlightNodes([ { id: nodeId } ], true);
+    }
+  };
+
+  // Clear highlights
+  clearHighlights = () => {
+    if (this.cyRef.current) {
+      this.cyRef.current.clearHighlighting();
+    }
+  };
+
+  // Lifecycle method
+  async componentDidMount() {
+    // Initialize the component
+    await this.initialize();
   }
 
   render() {
@@ -111,7 +148,7 @@ class ModelGraphViewerComponent extends React.Component {
     return (
       <div className="mgv-wrap">
         <div className="model-graph">
-          {/* Ensure the ref is passed correctly */}
+          {/* Pass the ref to the Cytoscape component */}
           <ModelGraphViewerCytoscapeComponent ref={this.cyRef} />
         </div>
         {isLoading && <LoaderComponent />}
