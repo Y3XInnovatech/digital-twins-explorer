@@ -5,7 +5,10 @@ import React from "react";
 import { Icon } from "office-ui-fabric-react";
 
 import GraphViewerCommandBarComponent from "./GraphViewerCommandBarComponent/GraphViewerCommandBarComponent";
-import { GraphViewerCytoscapeComponent, GraphViewerCytoscapeLayouts } from "./GraphViewerCytoscapeComponent/GraphViewerCytoscapeComponent";
+import {
+  GraphViewerCytoscapeComponent,
+  GraphViewerCytoscapeLayouts
+} from "./GraphViewerCytoscapeComponent/GraphViewerCytoscapeComponent";
 import GraphViewerRelationshipCreateComponent from "./GraphViewerRelationshipCreateComponent/GraphViewerRelationshipCreateComponent";
 import { GraphViewerRelationshipViewerComponent } from "./GraphViewerRelationshipViewerComponent/GraphViewerRelationshipViewerComponent";
 import { GraphViewerTwinDeleteComponent } from "./GraphViewerTwinDeleteComponent/GraphViewerTwinDeleteComponent";
@@ -21,7 +24,11 @@ import { eventService } from "../../services/EventService";
 import { print } from "../../services/LoggingService";
 import { BatchService } from "../../services/BatchService";
 import { settingsService } from "../../services/SettingsService";
-import { REL_TYPE_OUTGOING, DETAIL_MIN_WIDTH, PROPERTY_INSPECTOR_DEFAULT_WIDTH } from "../../services/Constants";
+import {
+  REL_TYPE_OUTGOING,
+  DETAIL_MIN_WIDTH,
+  PROPERTY_INSPECTOR_DEFAULT_WIDTH
+} from "../../services/Constants";
 import { getUniqueRelationshipId } from "../../utils/utilities";
 
 import "./GraphViewerComponent.scss";
@@ -88,8 +95,12 @@ class GraphViewerComponent extends React.Component {
         this.onTwinDelete(id);
       }
     });
-    eventService.subscribeAddRelationship(data => data && this.onRelationshipCreate(data));
-    eventService.subscribeDeleteRelationship(data => data && this.onRelationshipDelete(data));
+    eventService.subscribeAddRelationship(
+      data => data && this.onRelationshipCreate(data)
+    );
+    eventService.subscribeDeleteRelationship(
+      data => data && this.onRelationshipDelete(data)
+    );
     eventService.subscribeCreateTwin(data => {
       this.cyRef.current.setNewNodesInitialPositions();
       this.cyRef.current.addTwins([ data ]);
@@ -104,7 +115,9 @@ class GraphViewerComponent extends React.Component {
     eventService.subscribeClearTwinsData(() => {
       this.clearData();
     });
-    eventService.subscribeModelIconUpdate(modelId => this.cyRef.current.updateModelIcon(modelId));
+    eventService.subscribeModelIconUpdate(modelId =>
+      this.cyRef.current.updateModelIcon(modelId)
+    );
     eventService.subscribeCreateTwin(() => {
       this.cyRef.current.unselectSelectedNodes();
     });
@@ -131,7 +144,10 @@ class GraphViewerComponent extends React.Component {
       this.cyRef.current.focusContextMenu();
     });
     eventService.subscribeClickRelationship(relationship => {
-      eventService.publishSelection({ selection: relationship, selectionType: "relationship" });
+      eventService.publishSelection({
+        selection: relationship,
+        selectionType: "relationship"
+      });
       this.cyRef.current.clickEdge(getUniqueRelationshipId(relationship));
     });
     eventService.subscribeClearGraphSelection(() => {
@@ -160,7 +176,10 @@ class GraphViewerComponent extends React.Component {
 
     const { progress } = this.state;
     if (newProgress >= 0 && newProgress > progress) {
-      this.setState({ isLoading: newProgress < 100, progress: newProgress >= 100 ? 0 : newProgress });
+      this.setState({
+        isLoading: newProgress < 100,
+        progress: newProgress >= 100 ? 0 : newProgress
+      });
     }
   }
 
@@ -181,17 +200,28 @@ class GraphViewerComponent extends React.Component {
       }
       const allTwins = await this.getTwinsData(query, overlayResults);
       if (allTwins.length > 0) {
-        await this.getRelationshipsData(allTwins, 30, false, !overlayResults, REL_TYPE_OUTGOING);
+        await this.getRelationshipsData(
+          allTwins,
+          30,
+          false,
+          !overlayResults,
+          REL_TYPE_OUTGOING
+        );
         if (selectedNode) {
           const selected = allTwins.find(t => t.$dtId === selectedNode.id);
           if (selected) {
-            eventService.publishSelection({ selection: selected, selectionType: "twin" });
+            eventService.publishSelection({
+              selection: selected,
+              selectionType: "twin"
+            });
           } else {
             eventService.publishSelection();
           }
         }
         if (overlayResults) {
-          const { overlayItems: { twins, relationships } } = this.state;
+          const {
+            overlayItems: { twins, relationships }
+          } = this.state;
           this.cyRef.current.selectNodes(twins);
           this.cyRef.current.selectEdges(relationships);
         } else {
@@ -212,18 +242,24 @@ class GraphViewerComponent extends React.Component {
   async getTwinsData(query, overlayResults = false) {
     const allTwins = [];
     let extraTwins = [];
-    const existingTwins = this.cyRef.current ? this.cyRef.current.getTwins() : [];
+    const existingTwins = this.cyRef.current
+      ? this.cyRef.current.getTwins()
+      : [];
     this.updateProgress(5);
 
     if (overlayResults) {
       await apiService.query(query, async data => {
         if (data.twins.length > 0 || data.relationships.length > 0) {
           this.setState({ couldNotDisplay: false, noResults: false });
-          extraTwins = data.twins.filter(twin => !existingTwins.some(et => et === twin.$dtId));
+          extraTwins = data.twins.filter(
+            twin => !existingTwins.some(et => et === twin.$dtId)
+          );
           this.cyRef.current.addTwins(extraTwins);
           await this.cyRef.current.doLayout();
           data.twins.forEach(x => allTwins.push({ ...x, selected: true }));
-          this.setState({ overlayItems: { ...data, twins: data.twins.map(t => t.$dtId) }});
+          this.setState({
+            overlayItems: { ...data, twins: data.twins.map(t => t.$dtId) }
+          });
           this.updateProgress();
         } else {
           this.setState({ couldNotDisplay: true });
@@ -236,7 +272,11 @@ class GraphViewerComponent extends React.Component {
 
       await apiService.query(query, async data => {
         if (data.twins.length > 0) {
-          this.setState({ couldNotDisplay: false, noResults: false, relationshipsOnly: false });
+          this.setState({
+            couldNotDisplay: false,
+            noResults: false,
+            relationshipsOnly: false
+          });
           this.cyRef.current.addTwins(data.twins);
           await this.cyRef.current.doLayout();
           data.twins.forEach(x => allTwins.push(x));
@@ -251,7 +291,11 @@ class GraphViewerComponent extends React.Component {
         } else if (data.other.length > 0) {
           this.setState({ couldNotDisplay: true, relationshipsOnly: false });
         } else {
-          this.setState({ couldNotDisplay: true, noResults: true, relationshipsOnly: false });
+          this.setState({
+            couldNotDisplay: true,
+            noResults: true,
+            relationshipsOnly: false
+          });
         }
       });
     }
@@ -266,19 +310,29 @@ class GraphViewerComponent extends React.Component {
     return allTwins;
   }
 
-  async getRelationshipsData(twins, baseline = 0, loadTargets = false, clearExisting = false,
-    relTypeLoading = REL_TYPE_OUTGOING, expansionLevel = 1) {
+  async getRelationshipsData(
+    twins,
+    baseline = 0,
+    loadTargets = false,
+    clearExisting = false,
+    relTypeLoading = REL_TYPE_OUTGOING,
+    expansionLevel = 1
+  ) {
     this.updateProgress(baseline);
 
     this.relationships = [];
-    const existingRels = clearExisting ? this.cyRef.current.getRelationships() : [];
+    const existingRels = clearExisting
+      ? this.cyRef.current.getRelationships()
+      : [];
 
     const allTwins = [ ...twins ];
     const existingTwins = [];
 
     for (let i = 0; i < expansionLevel; i++) {
       const baselineChunk = (100 - baseline) / expansionLevel;
-      const currentTwins = allTwins.filter(x => existingTwins.every(y => y.$dtId !== x.$dtId));
+      const currentTwins = allTwins.filter(x =>
+        existingTwins.every(y => y.$dtId !== x.$dtId)
+      );
       existingTwins.push(...currentTwins);
 
       const twinsChunks = this.modelService.chunkModelsList(currentTwins, 100);
@@ -286,48 +340,66 @@ class GraphViewerComponent extends React.Component {
         refresh: () => {
           this.cyRef.current.doLayout();
         },
-        update: p => this.updateProgress(baseline + (i * baselineChunk) + ((p / 100) * baselineChunk)),
+        update: p =>
+          this.updateProgress(
+            // eslint-disable-next-line no-mixed-operators
+            baseline + i * baselineChunk + (p / 100) * baselineChunk
+          ),
         items: twinsChunks,
         action: (twinsList, resolve, reject) => {
           if (this.canceled) {
             resolve();
           }
           apiService
-            .queryRelationshipsPaged(twinsList.map(twin => twin.$dtId), async rels => {
-              try {
-                if (this.canceled) {
-                  resolve();
-                }
-                let presentRels = rels;
-                if (settingsService.eagerLoading || loadTargets) {
-                  const missingTwins = [];
-                  for (const rel of rels) {
-                    for (const prop of [ "$sourceId", "$targetId" ]) {
-                      // eslint-disable-next-line max-depth
-                      if (rel[prop] && allTwins.every(x => x.$dtId !== rel[prop])) {
-                        const missingTwin = await apiService.getTwinById(rel[prop]);
-                        [ missingTwins, allTwins ].forEach(x => x.push(missingTwin));
+            .queryRelationshipsPaged(
+              twinsList.map(twin => twin.$dtId),
+              async rels => {
+                try {
+                  if (this.canceled) {
+                    resolve();
+                  }
+                  let presentRels = rels;
+                  if (settingsService.eagerLoading || loadTargets) {
+                    const missingTwins = [];
+                    for (const rel of rels) {
+                      for (const prop of [ "$sourceId", "$targetId" ]) {
+                        // eslint-disable-next-line max-depth
+                        if (
+                          rel[prop]
+                          && allTwins.every(x => x.$dtId !== rel[prop])
+                        ) {
+                          const missingTwin = await apiService.getTwinById(
+                            rel[prop]
+                          );
+                          [ missingTwins, allTwins ].forEach(x =>
+                            x.push(missingTwin)
+                          );
+                        }
                       }
                     }
+
+                    this.allNodes = this.allNodes.concat(missingTwins);
+                    this.cyRef.current.addTwins(missingTwins);
+                    eventService.publishGraphTwins(this.allNodes);
+                  } else {
+                    presentRels = rels.filter(
+                      x =>
+                        allTwins.some(y => y.$dtId === x.$sourceId)
+                        && allTwins.some(y => y.$dtId === x.$targetId)
+                    );
                   }
 
-                  this.allNodes = this.allNodes.concat(missingTwins);
-                  this.cyRef.current.addTwins(missingTwins);
-                  eventService.publishGraphTwins(this.allNodes);
-                } else {
-                  presentRels = rels.filter(x =>
-                    allTwins.some(y => y.$dtId === x.$sourceId) && allTwins.some(y => y.$dtId === x.$targetId));
+                  this.cyRef.current.addRelationships(presentRels);
+                  presentRels.forEach(x => this.relationships.push(x));
+                  if (!rels.nextLink) {
+                    resolve();
+                  }
+                } catch (e) {
+                  reject(e);
                 }
-
-                this.cyRef.current.addRelationships(presentRels);
-                presentRels.forEach(x => this.relationships.push(x));
-                if (!rels.nextLink) {
-                  resolve();
-                }
-              } catch (e) {
-                reject(e);
-              }
-            }, relTypeLoading)
+              },
+              relTypeLoading
+            )
             .then(null, exc => {
               // If the twin has been deleted, warn but don't block the graph render
               print(`*** Error fetching data for twin: ${exc}`, "warning");
@@ -341,23 +413,37 @@ class GraphViewerComponent extends React.Component {
     }
 
     if (clearExisting) {
-      const removeRels = existingRels.filter(x => this.relationships.every(y => getUniqueRelationshipId(y) !== x));
+      const removeRels = existingRels.filter(x =>
+        this.relationships.every(y => getUniqueRelationshipId(y) !== x)
+      );
       this.cyRef.current.removeRelationships(removeRels);
     }
   }
 
   onEdgeClicked = async (e, selectedEdges) => {
     this.setState({ selectedEdges: selectedEdges.map(edge => edge.data()) });
-    const relationship = await apiService.getRelationship(e.source, e.relationshipId);
-    eventService.publishSelection({ selection: relationship.body, selectionType: "relationship" });
-  }
+    const relationship = await apiService.getRelationship(
+      e.source,
+      e.relationshipId
+    );
+    eventService.publishSelection({
+      selection: relationship.body,
+      selectionType: "relationship"
+    });
+  };
 
   onNodeClicked = async e => {
-    this.setState({ selectedNode: e.selectedNode, selectedNodes: e.selectedNodes });
+    this.setState({
+      selectedNode: e.selectedNode,
+      selectedNodes: e.selectedNodes
+    });
     eventService.publishSelectedTwins(e.selectedNodes);
     const { highlightingTerms } = this.state;
     if (highlightingTerms.length > 0) {
-      const newTerms = highlightingTerms.map(t => ({ ...t, isActive: false }));
+      const newTerms = highlightingTerms.map(t => ({
+        ...t,
+        isActive: false
+      }));
       this.setState({ highlightingTerms: newTerms });
     }
     if (e.selectedNodes && e.selectedNodes.length > 1) {
@@ -369,7 +455,10 @@ class GraphViewerComponent extends React.Component {
         // Get latest
         const { selectedNode } = this.state;
         if (data && selectedNode.id === e.selectedNode.id) {
-          eventService.publishSelection({ selection: data, selectionType: "twin" });
+          eventService.publishSelection({
+            selection: data,
+            selectionType: "twin"
+          });
         } else {
           eventService.publishSelection();
         }
@@ -380,16 +469,26 @@ class GraphViewerComponent extends React.Component {
     } else {
       eventService.publishSelection();
     }
-  }
+  };
 
   onNodeDoubleClicked = async e => {
     try {
       this.canceled = false;
-      await this.getRelationshipsData([ { $dtId: e.id } ], 10, true, false,
-        settingsService.relTypeLoading, settingsService.relExpansionLevel);
+      await this.getRelationshipsData(
+        [ { $dtId: e.id } ],
+        10,
+        true,
+        false,
+        settingsService.relTypeLoading,
+        settingsService.relExpansionLevel
+      );
     } catch (exc) {
       if (this.canceled) {
-        this.setState({ selectedNode: null, selectedNodes: null, selectedEdges: null });
+        this.setState({
+          selectedNode: null,
+          selectedNodes: null,
+          selectedEdges: null
+        });
       }
       if (exc.errorCode !== "user_cancelled") {
         exc.customMessage = "Error fetching data for graph";
@@ -398,13 +497,15 @@ class GraphViewerComponent extends React.Component {
     } finally {
       this.setState({ isLoading: false, progress: 0 });
     }
-  }
+  };
 
   onNodeMouseEnter = async modelId => {
     const model = await this.modelService.getModelById(modelId);
     const properties = await this.modelService.getProperties(modelId);
-    const displayName = model && model.model ? model.model.displayName : model.displayName;
-    const description = model && model.model ? model.model.description : model.description;
+    const displayName
+      = model && model.model ? model.model.displayName : model.displayName;
+    const description
+      = model && model.model ? model.model.description : model.description;
     return {
       displayName: displayName ? displayName : "",
       description: description ? description : "",
@@ -414,13 +515,20 @@ class GraphViewerComponent extends React.Component {
   };
 
   onControlClicked = () => {
-    this.setState({ selectedNode: null, selectedNodes: null, selectedEdges: null });
+    this.setState({
+      selectedNode: null,
+      selectedNodes: null,
+      selectedEdges: null
+    });
     eventService.publishSelection();
     eventService.publishSelectedTwins([]);
 
     const { highlightingTerms, filteringTerms } = this.state;
     if (highlightingTerms.length > 0) {
-      const newTerms = highlightingTerms.map(t => ({ ...t, isActive: false }));
+      const newTerms = highlightingTerms.map(t => ({
+        ...t,
+        isActive: false
+      }));
       this.setState({ highlightingTerms: newTerms });
     }
     if (filteringTerms.length > 0) {
@@ -430,7 +538,7 @@ class GraphViewerComponent extends React.Component {
       }
       this.setState({ filteringTerms: newTerms });
     }
-  }
+  };
 
   onTwinDelete = ids => {
     if (ids) {
@@ -443,15 +551,18 @@ class GraphViewerComponent extends React.Component {
     eventService.publishSelection();
     this.allNodes = this.allNodes.filter(n => !ids.includes(n.$dtId));
     eventService.publishGraphTwins(this.allNodes);
-  }
+  };
 
   onHide = () => this.setState({ hideMode: "hide-selected", canShowAll: true });
 
-  onHideOthers = () => this.setState({ hideMode: "hide-others", canShowAll: true });
+  onHideOthers = () =>
+    this.setState({ hideMode: "hide-others", canShowAll: true });
 
-  onHideNonChildren = () => this.setState({ hideMode: "hide-non-children", canShowAll: true });
+  onHideNonChildren = () =>
+    this.setState({ hideMode: "hide-non-children", canShowAll: true });
 
-  onHideWithChildren = () => this.setState({ hideMode: "hide-with-children", canShowAll: true });
+  onHideWithChildren = () =>
+    this.setState({ hideMode: "hide-with-children", canShowAll: true });
 
   onShowAll = () => {
     if (this.cyRef.current) {
@@ -469,7 +580,7 @@ class GraphViewerComponent extends React.Component {
 
   onHideRelationship = () => {
     this.setState({ canShowAllRelationships: true });
-  }
+  };
 
   onRelationshipCreate = relationship => {
     if (relationship) {
@@ -482,20 +593,22 @@ class GraphViewerComponent extends React.Component {
       selectedNodes.pop();
       this.setState({ selectedNode: null, selectedNodes });
     }
-  }
+  };
 
   onRelationshipDelete = relationship => {
     if (relationship) {
-      this.cyRef.current.removeRelationships([ getUniqueRelationshipId(relationship) ]);
+      this.cyRef.current.removeRelationships([
+        getUniqueRelationshipId(relationship)
+      ]);
       this.setState({ selectedEdges: null });
     }
-  }
+  };
 
   onLayoutChanged = layout => {
     this.setState({ layout });
     this.cyRef.current.setLayout(layout);
     this.cyRef.current.doLayout();
-  }
+  };
 
   onTriggerHide = () => {
     const { selectedNodes, hideMode } = this.state;
@@ -518,11 +631,11 @@ class GraphViewerComponent extends React.Component {
       }
     }
     this.setState({ canShowAll: true });
-  }
+  };
 
   disableOverlay = () => {
     this.setState({ overlayItems: {} });
-  }
+  };
 
   onConfirmTwinDelete = node => {
     let { selectedNode, selectedNodes } = this.state;
@@ -538,7 +651,7 @@ class GraphViewerComponent extends React.Component {
     this.setState({ selectedNode, selectedNodes }, () => {
       this.delete.current.open();
     });
-  }
+  };
 
   onConfirmRelationshipDelete = edge => {
     const { selectedEdges } = this.state;
@@ -557,7 +670,7 @@ class GraphViewerComponent extends React.Component {
         this.deleteRel.current.open();
       });
     }
-  }
+  };
 
   onGetRelationships = node => {
     let selectedNode = null;
@@ -567,33 +680,33 @@ class GraphViewerComponent extends React.Component {
     this.setState({ selectedNode }, () => {
       this.view.current.open();
     });
-  }
+  };
 
   toggleFilter = () => {
     const { filterIsOpen } = this.state;
     this.setState({ filterIsOpen: !filterIsOpen });
-  }
+  };
 
   togglePropertyInspector = () => {
     const { propertyInspectorIsOpen } = this.state;
     this.setState({ propertyInspectorIsOpen: !propertyInspectorIsOpen });
-  }
+  };
 
   onZoomIn = () => {
     this.cyRef.current.zoomIn();
-  }
+  };
 
   onZoomOut = () => {
     this.cyRef.current.zoomOut();
-  }
+  };
 
   onZoomToFit = () => {
     this.cyRef.current.zoomToFit();
-  }
+  };
 
   onCenter = () => {
     this.cyRef.current.center();
-  }
+  };
 
   onConfirmRelationshipCreate = node => {
     const { selectedNodes } = this.state;
@@ -601,17 +714,18 @@ class GraphViewerComponent extends React.Component {
     this.setState({ selectedNode: node, selectedNodes }, () => {
       this.create.current.open();
     });
-  }
+  };
 
   handleMouseMove = e => {
     this.resizeEndX = this.resizeStartX - e.screenX;
     if (this.resizeEndX >= DETAIL_MIN_WIDTH) {
       this.setState({
-        propInspectorDetailWidth: DETAIL_MIN_WIDTH + ((this.resizeEndX * 100) / window.innerWidth)
+        propInspectorDetailWidth:
+          // eslint-disable-next-line no-mixed-operators
+          DETAIL_MIN_WIDTH + (this.resizeEndX * 100) / window.innerWidth
       });
     }
   };
-
 
   handleMouseUp = e => {
     e.preventDefault();
@@ -634,15 +748,16 @@ class GraphViewerComponent extends React.Component {
     this.setState({ filteringTerms }, () => {
       this.filterNodes();
     });
-  }
+  };
 
   onUpdateHighlightingTerm = term => {
     const { highlightingTerms } = this.state;
-    highlightingTerms[highlightingTerms.map(t => t.text).indexOf(term.text)] = term;
+    highlightingTerms[highlightingTerms.map(t => t.text).indexOf(term.text)]
+      = term;
     this.setState({ highlightingTerms }, () => {
       this.highlightNodes();
     });
-  }
+  };
 
   onAddFilteringTerm = term => {
     const { filteringTerms } = this.state;
@@ -650,15 +765,18 @@ class GraphViewerComponent extends React.Component {
     this.setState({ filteringTerms }, () => {
       this.filterNodes();
     });
-  }
+  };
 
   onRemoveFilteringTerm = term => {
     const { filteringTerms } = this.state;
-    filteringTerms.splice(filteringTerms.map(t => t.text).indexOf(term.text), 1);
+    filteringTerms.splice(
+      filteringTerms.map(t => t.text).indexOf(term.text),
+      1
+    );
     this.setState({ filteringTerms }, () => {
       this.filterNodes();
     });
-  }
+  };
 
   onAddHighlightingTerm = term => {
     const { highlightingTerms } = this.state;
@@ -666,15 +784,18 @@ class GraphViewerComponent extends React.Component {
     this.setState({ highlightingTerms }, () => {
       this.highlightNodes();
     });
-  }
+  };
 
   onRemoveHighlightingTerm = term => {
     const { highlightingTerms } = this.state;
-    highlightingTerms.splice(highlightingTerms.map(t => t.text).indexOf(term.text), 1);
+    highlightingTerms.splice(
+      highlightingTerms.map(t => t.text).indexOf(term.text),
+      1
+    );
     this.setState({ highlightingTerms }, () => {
       this.highlightNodes();
     });
-  }
+  };
 
   highlightNodes = () => {
     const { highlightingTerms, overlayItems, overlayResults } = this.state;
@@ -685,9 +806,12 @@ class GraphViewerComponent extends React.Component {
     if (overlayResults && overlayItems.twins && overlayItems.twins.length > 0) {
       highlightedNodesIds = [ ...highlightedNodesIds, ...overlayItems.twins ];
     }
-    this.cyRef.current.highlightNodes(highlightedNodesIds, activeTerms.length > 0 || overlayResults);
+    this.cyRef.current.highlightNodes(
+      highlightedNodesIds,
+      activeTerms.length > 0 || overlayResults
+    );
     this.setState({ highlightedNodes });
-  }
+  };
 
   filterNodes = () => {
     const { filteringTerms } = this.state;
@@ -699,7 +823,7 @@ class GraphViewerComponent extends React.Component {
       this.cyRef.current.filterNodes(filteredNodes);
       eventService.publishGraphTwins(filteredNodes);
     }
-  }
+  };
 
   getFilteredNodes = (termsFilteringId, overlayResults) => {
     let outgoingRels = [];
@@ -708,10 +832,17 @@ class GraphViewerComponent extends React.Component {
         return !overlayResults;
       }
       const matchesId = termsFilteringId.some(term => {
-        const matches = node.$dtId.toLowerCase().includes(term.text.toLowerCase());
+        const matches = node.$dtId
+          .toLowerCase()
+          .includes(term.text.toLowerCase());
         if (matches) {
           if (term.addOutgoingRelationships) {
-            outgoingRels = [ ...new Set([ ...outgoingRels, ...this.getNodeOutgoingRelationships(node) ]) ];
+            outgoingRels = [
+              ...new Set([
+                ...outgoingRels,
+                ...this.getNodeOutgoingRelationships(node)
+              ])
+            ];
           }
         }
         return matches;
@@ -722,18 +853,20 @@ class GraphViewerComponent extends React.Component {
       filteredNodes = [ ...new Set([ ...filteredNodes, ...outgoingRels ]) ];
     }
     return filteredNodes;
-  }
+  };
 
   getNodeOutgoingRelationships = node => {
     const outgoingRels = [];
-    const nodeRels = this.relationships.filter(rel => rel.$sourceId === node.$dtId);
+    const nodeRels = this.relationships.filter(
+      rel => rel.$sourceId === node.$dtId
+    );
     if (nodeRels.length > 0) {
       nodeRels.forEach(rel => {
         outgoingRels.push(this.allNodes.find(n => n.$dtId === rel.$targetId));
       });
     }
     return outgoingRels;
-  }
+  };
 
   renderCommandBar = () => {
     const {
@@ -748,9 +881,16 @@ class GraphViewerComponent extends React.Component {
     } = this.state;
     return (
       <>
-        <GraphViewerCommandBarComponent className="gc-commandbar" buttonClass="gc-toolbarButtons" ref={this.commandRef}
-          selectedNode={selectedNode} selectedNodes={selectedNodes} query={query}
-          layouts={Object.keys(GraphViewerCytoscapeLayouts)} layout={layout} hideMode={hideMode}
+        <GraphViewerCommandBarComponent
+          className="gc-commandbar"
+          buttonClass="gc-toolbarButtons"
+          ref={this.commandRef}
+          selectedNode={selectedNode}
+          selectedNodes={selectedNodes}
+          query={query}
+          layouts={Object.keys(GraphViewerCytoscapeLayouts)}
+          layout={layout}
+          hideMode={hideMode}
           onRelationshipCreate={this.onRelationshipCreate}
           onShowAllRelationships={this.onShowAllRelationships}
           onTwinDelete={this.onTwinDelete}
@@ -767,20 +907,33 @@ class GraphViewerComponent extends React.Component {
           onCenterClicked={() => this.cyRef.current.center()}
           onLayoutChanged={this.onLayoutChanged}
           onGetCurrentNodes={() => this.cyRef.current.graphControl.nodes()}
-          setSelectedDisplayNameProperty={this.props.setSelectedDisplayNameProperty}
+          setSelectedDisplayNameProperty={
+            this.props.setSelectedDisplayNameProperty
+          }
           selectedDisplayNameProperty={this.props.selectedDisplayNameProperty}
           isDisplayNameAsteriskPresent={this.state.isDisplayNameAsteriskPresent}
           displayNameProperties={this.props.displayNameProperties} />
-        <GraphViewerRelationshipCreateComponent ref={this.create}
-          selectedNode={selectedNode} selectedNodes={selectedNodes}
+        <GraphViewerRelationshipCreateComponent
+          ref={this.create}
+          selectedNode={selectedNode}
+          selectedNodes={selectedNodes}
           onCreate={this.onRelationshipCreate} />
-        <GraphViewerRelationshipViewerComponent selectedNode={selectedNode} ref={this.view} />
-        <GraphViewerTwinDeleteComponent selectedNode={selectedNode} selectedNodes={selectedNodes} query={query} ref={this.delete}
-          onDelete={this.onTwinDelete} onGetCurrentNodes={() => this.cyRef.current.graphControl.nodes()} />
-        <GraphViewerRelationshipDeleteComponent selectedEdges={selectedEdges} ref={this.deleteRel} />
+        <GraphViewerRelationshipViewerComponent
+          selectedNode={selectedNode}
+          ref={this.view} />
+        <GraphViewerTwinDeleteComponent
+          selectedNode={selectedNode}
+          selectedNodes={selectedNodes}
+          query={query}
+          ref={this.delete}
+          onDelete={this.onTwinDelete}
+          onGetCurrentNodes={() => this.cyRef.current.graphControl.nodes()} />
+        <GraphViewerRelationshipDeleteComponent
+          selectedEdges={selectedEdges}
+          ref={this.deleteRel} />
       </>
     );
-  }
+  };
 
   resetFiltering = () => {
     if (this.cyRef.current) {
@@ -788,7 +941,7 @@ class GraphViewerComponent extends React.Component {
       this.cyRef.current.clearHighlighting();
     }
     this.setState({ highlightingTerms: [], filteringTerms: [] });
-  }
+  };
 
   onSwitchFilters = e => {
     let currentFilter = "filter";
@@ -805,27 +958,41 @@ class GraphViewerComponent extends React.Component {
       this.highlightNodes();
     }
     this.setState({ currentFilter });
-  }
+  };
 
   onSelectAllHighlighted = () => {
     const { highlightedNodes } = this.state;
     if (highlightedNodes.length > 0) {
-      this.cyRef.current.selectNodes(highlightedNodes.map(node => node.$dtId));
-      const newSelectedNodes = highlightedNodes.map(node => ({ id: node.$dtId, modelId: node.$metadata.$model }));
-      this.setState({ selectedNode: newSelectedNodes[0], selectedNodes: newSelectedNodes });
+      this.cyRef.current.selectNodes(
+        highlightedNodes.map(node => node.$dtId)
+      );
+      const newSelectedNodes = highlightedNodes.map(node => ({
+        id: node.$dtId,
+        modelId: node.$metadata.$model
+      }));
+      this.setState({
+        selectedNode: newSelectedNodes[0],
+        selectedNodes: newSelectedNodes
+      });
       eventService.publishSelectedTwins(newSelectedNodes);
     }
-  }
+  };
 
   onSelectAllFiltered = () => {
     const { filteredNodes } = this.state;
     if (filteredNodes.length > 0) {
       this.cyRef.current.selectNodes(filteredNodes.map(node => node.$dtId));
-      const newSelectedNodes = filteredNodes.map(node => ({ id: node.$dtId, modelId: node.$metadata.$model }));
-      this.setState({ selectedNode: newSelectedNodes[0], selectedNodes: newSelectedNodes });
+      const newSelectedNodes = filteredNodes.map(node => ({
+        id: node.$dtId,
+        modelId: node.$metadata.$model
+      }));
+      this.setState({
+        selectedNode: newSelectedNodes[0],
+        selectedNodes: newSelectedNodes
+      });
       eventService.publishSelectedTwins(newSelectedNodes);
     }
-  }
+  };
 
   deselectAll = () => {
     const { currentFilter } = this.state;
@@ -837,37 +1004,61 @@ class GraphViewerComponent extends React.Component {
     } else {
       this.highlightNodes();
     }
-  }
+  };
 
   onClearAll = () => {
     const { currentFilter } = this.state;
     eventService.publishSelectedTwins([]);
     if (currentFilter === "filter") {
-      this.setState({ selectedNode: null, selectedNodes: null, filteringTerms: [] }, () => {
-        this.cyRef.current.clearHighlighting();
-        this.filterNodes();
-      });
+      this.setState(
+        { selectedNode: null, selectedNodes: null, filteringTerms: [] },
+        () => {
+          this.cyRef.current.clearHighlighting();
+          this.filterNodes();
+        }
+      );
     } else {
-      this.setState({ selectedNode: null, selectedNodes: null, highlightingTerms: [] }, () => {
-        this.highlightNodes();
-      });
+      this.setState(
+        { selectedNode: null, selectedNodes: null, highlightingTerms: [] },
+        () => {
+          this.highlightNodes();
+        }
+      );
     }
-  }
+  };
 
   onFocusBackToTwinViewer = () => eventService.publishFocusTwinViewer();
 
+  // eslint-disable-next-line max-lines-per-function
   render() {
-    const { isLoading, progress, filterIsOpen, propertyInspectorIsOpen,
-      overlayResults, overlayItems, propInspectorDetailWidth, couldNotDisplay, relationshipsOnly,
-      outputIsOpen, highlightingTerms, filteringTerms, filteredNodes, highlightedNodes, noResults, selectedNodes } = this.state;
+    const {
+      isLoading,
+      progress,
+      filterIsOpen,
+      propertyInspectorIsOpen,
+      overlayResults,
+      overlayItems,
+      propInspectorDetailWidth,
+      couldNotDisplay,
+      relationshipsOnly,
+      outputIsOpen,
+      highlightingTerms,
+      filteringTerms,
+      filteredNodes,
+      highlightedNodes,
+      noResults,
+      selectedNodes
+    } = this.state;
     return (
-      <div className={`gvc-wrap ${propertyInspectorIsOpen ? "pi-open" : "pi-closed"}`}>
+      <div
+        className={`gvc-wrap ${
+          propertyInspectorIsOpen ? "pi-open" : "pi-closed"
+        }`}>
         <div className={`gc-grid ${filterIsOpen ? "open" : "closed"}`}>
-          <div className="gc-toolbar">
-            {this.renderCommandBar()}
-          </div>
+          <div className="gc-toolbar">{this.renderCommandBar()}</div>
           <div className="gc-wrap">
-            <GraphViewerCytoscapeComponent ref={this.cyRef}
+            <GraphViewerCytoscapeComponent
+              ref={this.cyRef}
               overlayResults={overlayResults}
               overlayItems={overlayItems}
               disableOverlay={this.disableOverlay}
@@ -888,42 +1079,83 @@ class GraphViewerComponent extends React.Component {
               isHighlighting={highlightingTerms && highlightingTerms.length > 0}
               highlightFilteredNodes={this.highlightNodes}
               displayNameProperty={this.props.selectedDisplayNameProperty}
-              setIsDisplayNameAsteriskPresent={isPresent => this.setState({ isDisplayNameAsteriskPresent: isPresent })}
+              setIsDisplayNameAsteriskPresent={isPresent =>
+                this.setState({ isDisplayNameAsteriskPresent: isPresent })}
               onNodeMouseEnter={this.onNodeMouseEnter} />
-            {couldNotDisplay && <div className={`alert-no-display ${outputIsOpen ? "output" : ""} ${noResults ? "no-results" : ""}`}>
-              <div className="alert--info">i</div>
-              <div className="alert--message">
-                {noResults ? <span>No results found. </span>
-                  : <>
-                    {relationshipsOnly
-                      ? <><span>A graph may only be rendered if the results contain a twin. </span>
-                        <span>Click here to open the </span>
-                        <a onClick={() => {
-                          eventService.publishOpenTabularView(this.relationships);
-                          this.setState({ couldNotDisplay: false });
-                        }}>Tabular Relationships View</a></>
-                      : <span>The query returned results that could not be displayed or overlayed. </span>}
-                    {!outputIsOpen && <>
-                      <span> or open the </span>
-                      <a onClick={() => {
-                        eventService.publishOpenOptionalComponent("output");
-                        this.setState({ couldNotDisplay: false });
-                      }}>Output Panel</a>
-                      <span> and run the query again to see the results.</span>
-                    </>}
-                  </>}
+            {couldNotDisplay && (
+              <div
+                className={`alert-no-display ${outputIsOpen ? "output" : ""} ${
+                  noResults ? "no-results" : ""
+                }`}>
+                <div className="alert--info">i</div>
+                <div className="alert--message">
+                  {noResults ? (
+                    <span>No results found. </span>
+                  ) : (
+                    <>
+                      {relationshipsOnly ? (
+                        <>
+                          <span>
+                            A graph may only be rendered if the results contain
+                            a twin.{" "}
+                          </span>
+                          <span>Click here to open the </span>
+                          <a
+                            onClick={() => {
+                              eventService.publishOpenTabularView(
+                                this.relationships
+                              );
+                              this.setState({ couldNotDisplay: false });
+                            }}>
+                            Tabular Relationships View
+                          </a>
+                        </>
+                      ) : (
+                        <span>
+                          The query returned results that could not be displayed
+                          or overlayed.{" "}
+                        </span>
+                      )}
+                      {!outputIsOpen && (
+                        <>
+                          <span> or open the </span>
+                          <a
+                            onClick={() => {
+                              eventService.publishOpenOptionalComponent(
+                                "output"
+                              );
+                              this.setState({ couldNotDisplay: false });
+                            }}>
+                            Output Panel
+                          </a>
+                          <span>
+                            {" "}
+                            and run the query again to see the results.
+                          </span>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+                <Icon
+                  className="alert--close"
+                  iconName="ChromeClose"
+                  aria-label={this.props.t(
+                    "graphViewerComponent.alertCloseIcon"
+                  )}
+                  role="button"
+                  onClick={() => this.setState({ couldNotDisplay: false })}
+                  title="Close alert" />
               </div>
-              <Icon
-                className="alert--close"
-                iconName="ChromeClose"
-                aria-label={this.props.t("graphViewerComponent.alertCloseIcon")}
-                role="button"
-                onClick={() => this.setState({ couldNotDisplay: false })}
-                title="Close alert" />
-            </div>}
+            )}
           </div>
           <div className="gc-filter">
-            <GraphViewerFilteringComponent toggleFilter={this.toggleFilter} onZoomIn={this.onZoomIn} onZoomOut={this.onZoomOut} onZoomToFit={this.onZoomToFit} onCenter={this.onCenter}
+            <GraphViewerFilteringComponent
+              toggleFilter={this.toggleFilter}
+              onZoomIn={this.onZoomIn}
+              onZoomOut={this.onZoomOut}
+              onZoomToFit={this.onZoomToFit}
+              onCenter={this.onCenter}
               onAddHighlightingTerm={this.onAddHighlightingTerm}
               onRemoveHighlightingTerm={this.onRemoveHighlightingTerm}
               onAddFilteringTerm={this.onAddFilteringTerm}
@@ -932,23 +1164,48 @@ class GraphViewerComponent extends React.Component {
               onUpdateHighlightingTerm={this.onUpdateHighlightingTerm}
               onSwitchFilters={this.onSwitchFilters}
               deselectAll={this.deselectAll}
-              canSelectAllFilter={filteredNodes.length > 0 && (!selectedNodes || selectedNodes.length === 0)}
-              canSelectAllHighlight={highlightedNodes.length > 0 && (!selectedNodes || selectedNodes.length === 0)}
+              canSelectAllFilter={
+                filteredNodes.length > 0
+                && (!selectedNodes || selectedNodes.length === 0)
+              }
+              canSelectAllHighlight={
+                highlightedNodes.length > 0
+                && (!selectedNodes || selectedNodes.length === 0)
+              }
               onSelectAllHighlighted={this.onSelectAllHighlighted}
-              selectAllHighlightedText={this.props.t("graphViewerFilteringComponent.selectAllHighlighted")}
+              selectAllHighlightedText={this.props.t(
+                "graphViewerFilteringComponent.selectAllHighlighted"
+              )}
               onSelectAllFiltered={this.onSelectAllFiltered}
-              selectAllFilteredText={this.props.t("graphViewerFilteringComponent.selectAllFiltered")}
+              selectAllFilteredText={this.props.t(
+                "graphViewerFilteringComponent.selectAllFiltered"
+              )}
               highlightingTerms={highlightingTerms}
               filteringTerms={filteringTerms}
               onClearAll={this.onClearAll} />
           </div>
-          {isLoading && <LoaderComponent message={`${Math.round(progress)}%`} cancel={() => this.canceled = true} />}
+          {isLoading && (
+            <LoaderComponent
+              message={`${Math.round(progress)}%`}
+              cancel={() => (this.canceled = true)} />
+          )}
         </div>
-        <div className="pi-wrap" style={{width: propertyInspectorIsOpen ? `${propInspectorDetailWidth}%` : 0}}>
-          <div className="pi-toggle" tabIndex="0" onClick={this.togglePropertyInspector}>
+        <div
+          className="pi-wrap"
+          style={{
+            width: propertyInspectorIsOpen ? `${propInspectorDetailWidth}%` : 0
+          }}>
+          <div
+            className="pi-toggle"
+            tabIndex="0"
+            onClick={this.togglePropertyInspector}>
             <Icon
               className="toggle-icon"
-              iconName={propertyInspectorIsOpen ? "DoubleChevronRight" : "DoubleChevronLeft"}
+              iconName={
+                propertyInspectorIsOpen
+                  ? "DoubleChevronRight"
+                  : "DoubleChevronLeft"
+              }
               onClick={this.togglePropertyInspector}
               aria-label={this.props.t("graphViewerComponent.toggleIcon")}
               role="button"
@@ -956,9 +1213,7 @@ class GraphViewerComponent extends React.Component {
           </div>
           <PropertyInspectorComponent isOpen={propertyInspectorIsOpen} />
           {propertyInspectorIsOpen && (
-            <div
-              className="dragable"
-              onMouseDown={this.handleMouseDown} />
+            <div className="dragable" onMouseDown={this.handleMouseDown} />
           )}
         </div>
       </div>
@@ -967,4 +1222,6 @@ class GraphViewerComponent extends React.Component {
 
 }
 
-export default withTranslation("translation", { withRef: true })(GraphViewerComponent);
+export default withTranslation("translation", { withRef: true })(
+  GraphViewerComponent
+);

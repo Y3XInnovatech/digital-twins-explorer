@@ -37,8 +37,8 @@ import { ModelService } from "./services/ModelService";
 import { exportService } from "./services/ExportService";
 import themeVariables from "./theme/variables";
 import { darkFabricTheme, darkFabricThemeHighContrast } from "./theme/DarkFabricTheme";
-import logo from "./assets/logo192.png";
-
+import logo from "./assets/y3x-removebg-preview(1).png";
+import logo2 from "./assets/y3x-removebg-preview(2).png";
 import "prismjs/components/prism-json";
 import "prismjs/themes/prism.css";
 import ModelUploadMessageBar from "./components/ModelUploadMessageBar/ModelUploadMessageBar";
@@ -437,8 +437,9 @@ class App extends Component {
             <div role="banner" className="header" >
               <Stack horizontal className="top-bar">
                 <div>
-                  <img src={logo} width={20} height={20} alt="" />
-                  <h1 className="top-bar-title">Azure Digital Twins Explorer</h1>
+                  <img src={logo} width={30} height={30} alt="logo1" />
+                  <img src={logo2} width={180} height={20} alt="logo2" className="top-bar-logo2" />
+                  {/* <h1 className="top-bar-title">Azure Digital Twins Explorer</h1> */}
                 </div>
                 <AppCommandBar optionalComponents={optionalComponentsState}
                   optionalComponentsState={optionalComponentsState}
