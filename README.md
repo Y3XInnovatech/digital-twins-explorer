@@ -46,8 +46,8 @@ Node.js 10+
 1. Select the **Download ZIP** button to download a .zip file of this sample code to your machine. Unzip the **digital-twins-explorer-<branch>.zip** folder, and extract the files. Alternatively, you can clone the repository.
 1. From a command prompt in the `client/src` folder, run `npm install`. This will retrieve all dependencies
     >**IMPORTANT!** Due to a dependency on the `npm-force-resolutions` package to mitigate an underlying security issue you will not be able to install under any path that contains a space. For more information, see this GitHub [issue](https://github.com/rogeriochaves/npm-force-resolutions/issues/17).
-1. From the same command prompt, run `npm run start`.
 1. From a command prompt in the `client/` folder, run `node server.js` to start the backend server.
+1. From the same command prompt, run `npm run start`.
     > By default, the app runs on port 3000. To customize the port, change the run command. For example, to use port 8080:
     >  * Linux/Mac (Bash): `PORT=8080 npm run start`
     >  * Windows (cmd): `set PORT=8080 && npm run start`
