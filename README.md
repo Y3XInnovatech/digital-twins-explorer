@@ -26,7 +26,7 @@ This README contains information and guidance specific to hosting this codebase 
 * [Extensibility points](#extensibility-points)
 * [Services](#services)
 
-For general documentation on the Azure Digital Twins Explorer features for both the hosted version and local codebase, see the [Azure Digital Twins documentation](https://docs.microsoft.com/azure/digital-twins/overview): 
+For general documentation on the Azure Digital Twins Explorer features for both the hosted version and local codebase, see the [Azure Digital Twins documentation](https://docs.microsoft.com/azure/digital-twins/overview):
 * [Concepts: Azure Digital Twins Explorer](https://docs.microsoft.com/azure/digital-twins/concepts-azure-digital-twins-explorer)
 * [How-to: Use Azure Digital Twins Explorer](https://docs.microsoft.com/azure/digital-twins/how-to-use-azure-digital-twins-explorer)
 
@@ -47,6 +47,7 @@ Node.js 10+
 1. From a command prompt in the `client/src` folder, run `npm install`. This will retrieve all dependencies
     >**IMPORTANT!** Due to a dependency on the `npm-force-resolutions` package to mitigate an underlying security issue you will not be able to install under any path that contains a space. For more information, see this GitHub [issue](https://github.com/rogeriochaves/npm-force-resolutions/issues/17).
 1. From the same command prompt, run `npm run start`.
+1. From a command prompt in the `client/` folder, run `node server.js` to start the backend server.
     > By default, the app runs on port 3000. To customize the port, change the run command. For example, to use port 8080:
     >  * Linux/Mac (Bash): `PORT=8080 npm run start`
     >  * Windows (cmd): `set PORT=8080 && npm run start`
@@ -55,30 +56,6 @@ Node.js 10+
 
 See below for instructions on how to run digital-twins-explorer using docker.
 
-## Run Azure Digital Twins Explorer with Docker
-
-1. From a command prompt in the root folder, run `docker build -t azure-digital-twins-explorer .`. This will build the Docker image for the Azure Digital Twins Explorer.
-1. From the same command prompt, run `docker run -it -p3000:3000 azure-digital-twins-explorer`.
-    > By default, the app runs on port 3000. To customize the port, change the run command. For example, to use port 8080 run `docker run -it -p8080:3000 azure-digital-twins-explorer`.
-    > A message will appear on the console asking you to login using a code in the Microsoft device login page with your web browser; after doing so the Azure Digital Twins Explorer should start.
-    >  * Note: When run successfully the application will display a message showing you the URL & port that you must open to browse the app. When running the app inside Docker this information might not be accurate, as other port might have been exposed. Be sure to use
-    >  the port you chose before.
-1. You can now open your web browser and browse to `http://localhost:3000` (change `3000` for the appropriate port, if you changed it).
-
-## Sign in on first run
-
-Initial authentication is triggered by either of the following actions:
-1. Clicking on the Azure Digital Twins URL button in the top right
- 
-    <img src="https://raw.githubusercontent.com/Azure-Samples/digital-twins-explorer/main/media/digital-twins-explorer-url.png" alt="sign-in icon" width="250"/>
-1. Clicking on an operation that requires calling the service. When you click the first command, Azure Digital Twins Explorer will open a dialog that prompts you for connection information to your service instance.
-
-To continue, you will need to provide the URL of the Azure Digital Twins instance you want to access, in the form of the instance's **host name** prefixed with "https://". You can find the instance's host name in the [Azure portal](https://portal.azure.com) overview page for your Azure Digital Twins instance.
-
-<img src="https://raw.githubusercontent.com/Azure-Samples/digital-twins-explorer/main/media/sign-in-dialog.png" alt="sign-in dialog" width="250"/>
-
-To change the instance URL to connect to another instance of Azure Digital Twins, click on the sign in button in the top right.
- 
 ## Experimental features
 
 In addition to local operation, you can also run Azure Digital Twins Explorer as a cloud application. In the cloud, you can use push notifications from Azure Digital Twins, sent via the Azure SignalR service, to update your digital-twins-explorer in real time.
