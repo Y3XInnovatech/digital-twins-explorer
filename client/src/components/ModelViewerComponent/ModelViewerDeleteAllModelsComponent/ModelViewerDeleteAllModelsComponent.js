@@ -1,15 +1,12 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-
 import React, { Component } from "react";
 import ModalComponent from "../../ModalComponent/ModalComponent";
 import { DefaultButton } from "office-ui-fabric-react";
 import { eventService } from "../../../services/EventService";
 import { print } from "../../../services/LoggingService";
-import { ModelService } from "../../../services/ModelService";
 
 const KEY_ESC = 27;
 const KEY_TAB = 9;
+
 export default class ModelViewerDeleteAllModelsComponent extends Component {
 
   constructor(props) {
@@ -23,17 +20,29 @@ export default class ModelViewerDeleteAllModelsComponent extends Component {
   async deleteAllModels() {
     this.setState({ isLoading: true });
 
-    print(`*** Deleting all models`, "info");
+    print("*** Deleting all models", "info");
     try {
-      const modelService = new ModelService();
-      await modelService.deleteAll();
-      eventService.publishClearModelsData();
-    } catch (exc) {
-      exc.customMessage = "Error deleting models";
-      eventService.publishError(exc);
-    }
+      const response = await fetch("http://localhost:5000/models", {
+        method: "DELETE"
+      });
 
-    this.setState({ isLoading: false });
+      if (!response.ok) {
+        throw new Error(`Failed to delete all models: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      print(`Success: ${result.message}`, "success");
+
+      // Notify other components that models have been cleared
+      eventService.publishClearModelsData();
+
+      // Optionally, refresh the UI or fetch updated data here
+    } catch (error) {
+      print(`Error: ${error.message}`, "error");
+      eventService.publishError(error);
+    } finally {
+      this.setState({ isLoading: false });
+    }
   }
 
   open() {
@@ -43,11 +52,11 @@ export default class ModelViewerDeleteAllModelsComponent extends Component {
   confirm = async () => {
     await this.deleteAllModels();
     this.setState({ showModal: false });
-  }
+  };
 
   cancel = () => {
     this.setState({ showModal: false });
-  }
+  };
 
   componentDidMount() {
     const handleKeyDown = e => {
@@ -59,7 +68,11 @@ export default class ModelViewerDeleteAllModelsComponent extends Component {
       if (e.keyCode === KEY_TAB) {
         const deleteElement = document.getElementById("modal-delete-cta");
         const cancelElement = document.getElementById("modal-cancel-cta");
-        if (deleteElement && cancelElement && document.activeElement.id === cancelElement.id) {
+        if (
+          deleteElement
+          && cancelElement
+          && document.activeElement.id === cancelElement.id
+        ) {
           deleteElement.focus();
           e.preventDefault();
         }
@@ -73,11 +86,24 @@ export default class ModelViewerDeleteAllModelsComponent extends Component {
   render() {
     const { showModal, isLoading } = this.state;
     return (
-      <ModalComponent isVisible={showModal} isLoading={isLoading} className="gc-dialog">
+      <ModalComponent
+        isVisible={showModal}
+        isLoading={isLoading}
+        className="gc-dialog">
         <h2 className="heading-2">Are you sure?</h2>
         <div className="btn-group">
-          <DefaultButton className="modal-button save-button" onClick={this.confirm} id="modal-delete-cta">Delete</DefaultButton>
-          <DefaultButton className="modal-button cancel-button" onClick={this.cancel} id="modal-cancel-cta">Cancel</DefaultButton>
+          <DefaultButton
+            className="modal-button save-button"
+            onClick={this.confirm}
+            id="modal-delete-cta">
+            Delete
+          </DefaultButton>
+          <DefaultButton
+            className="modal-button cancel-button"
+            onClick={this.cancel}
+            id="modal-cancel-cta">
+            Cancel
+          </DefaultButton>
         </div>
       </ModalComponent>
     );

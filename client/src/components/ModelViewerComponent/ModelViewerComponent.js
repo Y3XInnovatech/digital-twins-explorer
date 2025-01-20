@@ -77,7 +77,7 @@ class ModelViewerComponent extends Component {
 
       const list = await response.json();
       const items = list.map(m => ({
-        displayName: m.name || m.id,
+        displayName: m.displayName?.en || m.id,
         key: m.id,
         selected: false
       }));
@@ -94,6 +94,44 @@ class ModelViewerComponent extends Component {
       this.setState({ isLoading: false });
     }
   }
+
+  // eslint-disable-next-line require-await
+  onUploadModelClicked = async () => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".json";
+    fileInput.onchange = async event => {
+      const file = event.target.files[0];
+      if (!file) {
+        return;
+      }
+
+      try {
+        const fileContent = await file.text();
+        const models = JSON.parse(fileContent);
+
+        // Send the models to the backend for appending
+        const response = await fetch("/models", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(models)
+        });
+
+        if (response.ok) {
+          eventService.publish({ type: "MODEL_UPLOADED" });
+          this.retrieveModels();
+        } else {
+          // eslint-disable-next-line no-console
+          console.error("Failed to upload models:", await response.text());
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Error uploading file:", error);
+      }
+    };
+
+    fileInput.click();
+  };
 
   onFilterChanged = (_, text) => {
     this.setState({
@@ -117,7 +155,8 @@ class ModelViewerComponent extends Component {
             <ModelViewerCommandBarComponent
               className="mv-commandbar"
               buttonClass="mv-toolbarButtons"
-              onDownloadModelsClicked={() => this.retrieveModels()} />
+              onDownloadModelsClicked={() => this.retrieveModels()}
+              onUploadModelClicked={this.onUploadModelClicked} />
           </div>
           <div>
             <TextField
@@ -130,7 +169,11 @@ class ModelViewerComponent extends Component {
           </div>
           <div data-is-scrollable="true" className="mv-modelListWrapper">
             <SelectionZone
-              selection={new Selection({ selectionMode: SelectionMode.single })}>
+              selection={
+                new Selection({
+                  selectionMode: SelectionMode.single
+                })
+              }>
               {items.map((item, index) => (
                 <ModelViewerItem
                   key={item.key}

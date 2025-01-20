@@ -235,7 +235,6 @@ class App extends Component {
           });
         });
 
-        // Map dictionary into list of lists segmented by occurence count
         const nameByCount = {};
         Object.keys(displayNameDict).forEach(key => {
           const count = displayNameDict[key];
@@ -246,10 +245,8 @@ class App extends Component {
           }
         })
 
-        // Sort counts in descending order
         const sortedCounts = Object.keys(nameByCount).map(key => Number(key)).sort((a, b) => a - b).reverse();
 
-        // Flatten descending counts, sorted alphabetically within each count, into result array
         displayNameProperties = sortedCounts.map(count =>
           nameByCount[count].sort((a, b) => a.displayName.localeCompare(b.displayName, undefined, { sensitivity: 'base' }))
         ).flat();

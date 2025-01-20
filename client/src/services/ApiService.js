@@ -13,9 +13,6 @@ class ApiService {
     this.twins = [];
   }
 
-  /**
-   * Load models from the local models.json file.
-   */
   // eslint-disable-next-line require-await
   async loadModels() {
     try {
@@ -36,9 +33,6 @@ class ApiService {
     }
   }
 
-  /**
-   * Load twins from the local twins.json file.
-   */
   // eslint-disable-next-line require-await
   async loadTwins() {
     try {
@@ -59,9 +53,14 @@ class ApiService {
     }
   }
 
-  /**
-   * Save models to the local models.json file.
-   */
+  async deleteAllModels() {
+    await this.loadModels();
+    this.models.value = [];
+    this.saveModels();
+    // eslint-disable-next-line no-console
+    console.log("All models deleted successfully.");
+  }
+
   saveModels() {
     try {
       fs.writeFileSync(MODELS_FILE_PATH, JSON.stringify(this.models, null, 2));
@@ -74,9 +73,6 @@ class ApiService {
     }
   }
 
-  /**
-   * Save twins to the local twins.json file.
-   */
   saveTwins() {
     try {
       fs.writeFileSync(TWINS_FILE_PATH, JSON.stringify(this.twins, null, 2));
@@ -89,12 +85,13 @@ class ApiService {
     }
   }
 
-  /**
-   * Query all models.
-   */
   async queryModels() {
     await this.loadModels();
-    return this.models;
+    return this.models.map(model => ({
+      id: model.id,
+      displayName: model.displayName,
+      ...model
+    }));
   }
 
   /**

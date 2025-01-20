@@ -4,19 +4,33 @@
 import React from "react";
 import CytoscapeComponent from "react-cytoscapejs";
 
-import { graphStyles, modelWithImageStyle, minZoomShowLabels, ellipsisMaxTextLength, ellipsisMaxTextLengthWithImage } from "./config";
-import { colors, dagreOptions, colaOptions, klayOptions, fcoseOptions, d3ForceOptions, navigationOptions } from "../../../config/CytoscapeConfig";
+import {
+  graphStyles,
+  modelWithImageStyle,
+  minZoomShowLabels,
+  ellipsisMaxTextLength,
+  ellipsisMaxTextLengthWithImage
+} from "./config";
+import {
+  colors,
+  dagreOptions,
+  colaOptions,
+  klayOptions,
+  fcoseOptions,
+  d3ForceOptions,
+  navigationOptions
+} from "../../../config/CytoscapeConfig";
 import { settingsService } from "../../../services/SettingsService";
 import { addNavigator } from "../../../utils/utilities";
 
 import "./ModelGraphViewerCytoscapeComponent.scss";
 
 export const ModelGraphViewerCytoscapeLayouts = {
-  "Cola": { ...colaOptions, nodeSpacing: () => 40 },
-  "Dagre": dagreOptions,
-  "fCoSE": fcoseOptions,
-  "Klay": klayOptions,
-  "d3Force": d3ForceOptions
+  Cola: { ...colaOptions, nodeSpacing: () => 40 },
+  Dagre: dagreOptions,
+  fCoSE: fcoseOptions,
+  Klay: klayOptions,
+  d3Force: d3ForceOptions
 };
 
 export class ModelGraphViewerCytoscapeComponent extends React.Component {
@@ -70,7 +84,10 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       .map(x => ({
         data: {
           id: x.id,
-          label: this.getTextWidth(x.label) > ellipsisMaxTextLength ? this.ellipsisText(x.label, x.id) : x.label,
+          label:
+            this.getTextWidth(x.label) > ellipsisMaxTextLength
+              ? this.ellipsisText(x.label, x.id)
+              : x.label,
           category: "Model"
         }
       }));
@@ -140,13 +157,15 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
 
   removeRelationships(relationships) {
     relationships.forEach(x => {
-      this.graphControl.$id(`${x.sourceId}_${x.targetId}_${x.relationshipName}`).remove();
+      this.graphControl
+        .$id(`${x.sourceId}_${x.targetId}_${x.relationshipName}`)
+        .remove();
     });
   }
 
   getColor(i) {
     const im = i % colors.length;
-    return (colors[(colors.length - 1) - im]);
+    return colors[colors.length - 1 - im];
   }
 
   getBackgroundImage(modelId) {
@@ -211,7 +230,7 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
     if (onNodeClicked) {
       onNodeClicked(node.id());
     }
-  }
+  };
 
   onNodeUnselected = e => {
     const removed = this.selectedNodes.findIndex(x => x.id === e.target.id());
@@ -219,23 +238,23 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       this.selectedNodes.splice(removed, 1);
       this.highlightRelatedNodes();
     }
-  }
+  };
 
   onEdgeSelected = e => {
     this.props.onEdgeClicked(e.target.data());
-  }
+  };
 
   onNodeDoubleClicked = e => {
     if (this.props.onNodeDoubleClicked) {
       this.props.onNodeDoubleClicked({ id: e.target.id() });
     }
-  }
+  };
 
   onEdgeSelected = e => {
     if (this.props.onEdgeClicked) {
       this.props.onEdgeClicked(e.target.data());
     }
-  }
+  };
 
   onControlClicked = e => {
     if (e.target === this.graphControl) {
@@ -249,7 +268,7 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
         this.props.onControlClicked(e);
       }
     }
-  }
+  };
 
   highlightRelatedNodes() {
     const cy = this.graphControl;
@@ -258,14 +277,19 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       cy.edges().toggleClass("opaque", true);
       let relatedNodesIds = [];
       this.selectedNodes.forEach(selectedNodeItem => {
-        const selectedNode = cy.nodes().filter(n => n.id() === selectedNodeItem.id);
+        const selectedNode = cy
+          .nodes()
+          .filter(n => n.id() === selectedNodeItem.id);
         const connectedEdges = selectedNode.connectedEdges();
         connectedEdges.forEach(edge => {
           cy.$id(edge.data().id).toggleClass("highlighted", true);
           cy.$id(edge.data().id).toggleClass("opaque", false);
         });
         const selectedNodeRelatedNodesIds = connectedEdges.map(edge =>
-          selectedNode.id() === edge.data().source ? edge.data().target : edge.data().source);
+          selectedNode.id() === edge.data().source
+            ? edge.data().target
+            : edge.data().source
+        );
         relatedNodesIds = relatedNodesIds.concat(selectedNodeRelatedNodesIds);
         relatedNodesIds.push(selectedNode.id());
       });
@@ -292,14 +316,15 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       cy.$id(selectedNode.id()).toggleClass("opaque", false);
       cy.$id(selectedNode.id()).toggleClass("highlighted", true);
       const connectedEdges = selectedNode.connectedEdges();
-      connectedEdges
-        .forEach(edge => {
-          if (nodesIds.includes(edge.data().source)
-            && nodesIds.includes(edge.data().target)) {
-            cy.$id(edge.data().id).toggleClass("highlighted", highlightEdges);
-            cy.$id(edge.data().id).toggleClass("opaque", false);
-          }
-        });
+      connectedEdges.forEach(edge => {
+        if (
+          nodesIds.includes(edge.data().source)
+          && nodesIds.includes(edge.data().target)
+        ) {
+          cy.$id(edge.data().id).toggleClass("highlighted", highlightEdges);
+          cy.$id(edge.data().id).toggleClass("opaque", false);
+        }
+      });
     });
   }
 
@@ -311,7 +336,7 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       cy.$id(cyNode.id()).toggleClass("highlighted", false);
       cy.$id(cyNode.id()).toggleClass("opaque", false);
     });
-  }
+  };
 
   zoomToFit() {
     this.graphControl.fit();
@@ -346,7 +371,7 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
         this.removePopper();
       }
     }, 200);
-  }
+  };
 
   onNodeHover = ({ target }) => {
     this.removePopper();
@@ -356,8 +381,13 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
         this.canRenderPopper = true;
         this.hoverTimeout = setTimeout(async () => {
           if (this.canRenderPopper) {
-            const { properties, telemetries } = await this.props.onNodeMouseEnter(target.id());
-            const contentDiv = this.getPopperContent(target.id(), properties, telemetries);
+            const { properties, telemetries }
+              = await this.props.onNodeMouseEnter(target.id());
+            const contentDiv = this.getPopperContent(
+              target.id(),
+              properties,
+              telemetries
+            );
             document.body.appendChild(contentDiv);
             this.renderPopper(target.id(), contentDiv);
           }
@@ -366,15 +396,21 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
         this.canRenderPopper = true;
         this.hoverTimeout = setTimeout(async () => {
           if (this.canRenderPopper) {
-            const relationship = await this.props.onEdgeMouseEnter(source, relationshipId);
-            const contentDiv = this.getPopperRelationshipContent(target.data(), relationship);
+            const relationship = await this.props.onEdgeMouseEnter(
+              source,
+              relationshipId
+            );
+            const contentDiv = this.getPopperRelationshipContent(
+              target.data(),
+              relationship
+            );
             document.body.appendChild(contentDiv);
             this.renderPopper(target.id(), contentDiv);
           }
         }, 1000);
       }
     }
-  }
+  };
 
   getContents = (properties, telemetries) => {
     let definedProperties = "";
@@ -383,10 +419,10 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       definedProperties += `<li>${key}</li>`;
     }
     if (telemetries) {
-      telemetries.forEach(r => definedTelemetries += `<li>${r.name}</li>`);
+      telemetries.forEach(r => (definedTelemetries += `<li>${r.name}</li>`));
     }
     return { definedTelemetries, definedProperties };
-  }
+  };
 
   getRelationshipsContents = properties => {
     let definedProperties = "";
@@ -394,10 +430,13 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       definedProperties += `<li>${prop}</li>`;
     }
     return { definedProperties };
-  }
+  };
 
   getPopperContent = (modelId, properties, telemetries) => {
-    const { definedProperties, definedTelemetries } = this.getContents(properties, telemetries);
+    const { definedProperties, definedTelemetries } = this.getContents(
+      properties,
+      telemetries
+    );
     const div = document.createElement("div");
     div.setAttribute("id", "cy-popper");
     div.addEventListener("mouseenter", () => {
@@ -412,20 +451,26 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
         <h4>DTID:</h4>
         <p>${modelId}</p>
       </div>
-      ${definedProperties && `<div>
+      ${
+        definedProperties
+        && `<div>
         <h4>PROPERTIES</h4>
         <ul>${definedProperties}</ul>
-      </div>`}
-      ${definedTelemetries && `<div>
+      </div>`
+      }
+      ${
+        definedTelemetries
+        && `<div>
         <h4>TELEMETRY</h4>
         <ul>${definedTelemetries}</ul>
-      </div>`}`;
+      </div>`
+      }`;
 
     return div;
   };
 
   getPopperRelationshipContent = (data, relationship) => {
-    const {source, target, label } = data;
+    const { source, target, label } = data;
     const properties = relationship.properties || [];
     const { definedProperties } = this.getRelationshipsContents(properties);
     const div = document.createElement("div");
@@ -473,18 +518,27 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
           <h4>SOURCE ID:</h4>
           <p>${source}</p>
         </div>
-        ${label && `<div>
+        ${
+          label
+          && `<div>
           <h4>RELATIONSHIP NAME:</h4>
           <p>${label}</p>
-        </div>`}
-        ${target && `<div>
+        </div>`
+        }
+        ${
+          target
+          && `<div>
           <h4>TARGET ID:</h4>
           <p>${target}</p>
-        </div>`}
-      ${definedProperties && `<div>
+        </div>`
+        }
+      ${
+        definedProperties
+        && `<div>
         <h4>PROPERTIES</h4>
         <ul>${definedProperties}</ul>
-      `}`;
+      `
+      }`;
     }
 
     return div;
@@ -495,7 +549,7 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
     if (activePopper) {
       activePopper.parentNode.removeChild(activePopper);
     }
-  }
+  };
 
   renderPopper = (nodeId, content) => {
     const cy = this.graphControl;
@@ -503,7 +557,7 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       content,
       popper: {}
     });
-  }
+  };
 
   showAllNodes = () => {
     const cy = this.graphControl;
@@ -513,15 +567,18 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
     cy.edges().forEach(cyEdge => {
       cy.$id(cyEdge.id()).toggleClass("hide", false);
     });
-  }
+  };
 
   filterNodes = nodes => {
     const cy = this.graphControl;
     const cleanNodes = nodes.filter(n => n && n.id);
     cy.nodes().forEach(cyNode => {
-      cy.$id(cyNode.id()).toggleClass("hide", !cleanNodes.some(node => node.id === cyNode.id()));
+      cy.$id(cyNode.id()).toggleClass(
+        "hide",
+        !cleanNodes.some(node => node.id === cyNode.id())
+      );
     });
-  }
+  };
 
   onGraphZoom = () => {
     const cy = this.graphControl;
@@ -533,25 +590,30 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       cy.edges().not(cy.$(".extends"))
         .toggleClass("hide-label", false);
     }
-  }
+  };
 
   ellipsisText = (text, modelId) => {
     const backgroundImage = this.getBackgroundImage(modelId);
     const ellipsisLength = this.getTextWidth("...");
-    const maxLength = backgroundImage ? (ellipsisMaxTextLengthWithImage - ellipsisLength) : (ellipsisMaxTextLength - ellipsisLength);
+    const maxLength = backgroundImage
+      ? ellipsisMaxTextLengthWithImage - ellipsisLength
+      : ellipsisMaxTextLength - ellipsisLength;
     return `...${this.cutTextToMaxLength(text, maxLength)}`;
-  }
+  };
 
   getTextWidth = text => {
     this.hiddenTextRuler.current.innerHTML = text;
     const offsetWidth = this.hiddenTextRuler.current.offsetWidth;
     this.hiddenTextRuler.current.innerHTML = "";
     return offsetWidth;
-  }
+  };
 
   cutTextToMaxLength = (text, maxLength) => {
     let length = this.getTextWidth(text);
-    let cutText = text.slice(Math.floor((length - maxLength) / length * text.length), text.length);
+    let cutText = text.slice(
+      Math.floor(((length - maxLength) / length) * text.length),
+      text.length
+    );
     length = this.getTextWidth(cutText);
     while (length > maxLength) {
       const lastIndex = cutText.length;
@@ -559,22 +621,26 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
       length = this.getTextWidth(cutText);
     }
     return cutText;
-  }
+  };
 
   onEdgeRightClick = () => {
     this.setState({ hideContextMenu: false });
     this.onNodeUnhover();
-  }
+  };
 
   onNodeRightClick = () => {
-    this.setState({ hideContextMenu: this.contextMenuItems.every(i => i.selector === "edge") });
-  }
+    this.setState({
+      hideContextMenu: this.contextMenuItems.every(
+        i => i.selector === "edge"
+      )
+    });
+  };
 
   onControlRightClick = e => {
     if (e.target === this.graphControl) {
       this.setState({ hideContextMenu: true });
     }
-  }
+  };
 
   onShowDestination = e => {
     const target = e.target || e.cyTarget;
@@ -584,7 +650,7 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
         eles: cy.$id(target.target().id())
       }
     });
-  }
+  };
 
   onShowSource = e => {
     const target = e.target || e.cyTarget;
@@ -594,40 +660,51 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
         eles: cy.$id(target.source().id())
       }
     });
-  }
+  };
 
   onScaleToRel = e => {
     const target = e.target || e.cyTarget;
     const cy = this.graphControl;
     cy.animate({
       fit: {
-        eles: cy.$(`[id = "${target.source().id()}"], [id = "${target.target().id()}"]`)
+        eles: cy.$(
+          `[id = "${target.source().id()}"], [id = "${target.target().id()}"]`
+        )
       }
     });
-  }
+  };
 
   emitNodeEvent = (nodeId, event) => {
     this.graphControl.$id(nodeId).emit(event);
-  }
+  };
 
   render() {
     const { hideContextMenu } = this.state;
     return (
       <div style={{ position: "relative", height: "100%" }}>
-        <CytoscapeComponent elements={[]}
+        <CytoscapeComponent
+          elements={[]}
           className={`graph-control ${hideContextMenu ? "hide-context" : ""}`}
           stylesheet={graphStyles}
           maxZoom={2}
           cy={cy => {
             if (this.graphControl !== cy) {
               this.graphControl = cy;
-              addNavigator(this.graphControl, navigationOptions, "#model-graph-viewer-nav");
+              addNavigator(
+                this.graphControl,
+                navigationOptions,
+                "#model-graph-viewer-nav"
+              );
               this.graphControl.dblclick();
               this.graphControl.on("select", "node", this.onNodeSelected);
               this.graphControl.on("unselect", "node", this.onNodeUnselected);
               this.graphControl.on("select", "edge", this.onEdgeSelected);
               this.graphControl.on("click", this.onControlClicked);
-              this.graphControl.on("dblclick", "node", this.onNodeDoubleClicked);
+              this.graphControl.on(
+                "dblclick",
+                "node",
+                this.onNodeDoubleClicked
+              );
               this.graphControl.on("mouseover", this.onNodeHover);
               this.graphControl.on("mouseout", this.onNodeUnhover);
               this.graphControl.on("mousedown", this.onNodeUnhover);
@@ -638,7 +715,10 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
             }
           }} />
         <div className="navigator-container">
-          <div id="model-graph-viewer-nav" className="graph-navigator" role="presentation" />
+          <div
+            id="model-graph-viewer-nav"
+            className="graph-navigator"
+            role="presentation" />
         </div>
         <div id="hidden-text-ruler" ref={this.hiddenTextRuler} />
       </div>
