@@ -7,7 +7,6 @@ const MODELS_FILE_PATH = path.join(__dirname, "./models.json");
 const TWINS_FILE_PATH = path.join(__dirname, "./twins.json");
 
 class ApiService {
-
   constructor() {
     this.models = [];
     this.twins = [];
@@ -87,10 +86,13 @@ class ApiService {
 
   async queryModels() {
     await this.loadModels();
-    return this.models.map(model => ({
+    return this.models.value.map((model) => ({
       id: model.id,
       displayName: model.displayName,
-      ...model
+      relationships:
+        model.model.contents?.filter(
+          (content) => content["@type"] === "Relationship"
+        ) || [],
     }));
   }
 
@@ -100,7 +102,7 @@ class ApiService {
    */
   async getModelById(modelId) {
     await this.loadModels();
-    const model = this.models.find(m => m.id === modelId);
+    const model = this.models.find((m) => m.id === modelId);
     if (!model) {
       throw new Error(`Model with ID ${modelId} not found.`);
     }
@@ -126,7 +128,7 @@ class ApiService {
   async deleteModel(modelId) {
     await this.loadModels();
     const initialLength = this.models.length;
-    this.models = this.models.filter(model => model.id !== modelId);
+    this.models = this.models.filter((model) => model.id !== modelId);
     if (this.models.length === initialLength) {
       throw new Error(`Model with ID ${modelId} not found.`);
     }
@@ -149,7 +151,7 @@ class ApiService {
    */
   async getTwinById(twinId) {
     await this.loadTwins();
-    const twin = this.twins.find(t => t.$dtId === twinId);
+    const twin = this.twins.find((t) => t.$dtId === twinId);
     if (!twin) {
       throw new Error(`Twin with ID ${twinId} not found.`);
     }
@@ -175,7 +177,7 @@ class ApiService {
   async deleteTwin(twinId) {
     await this.loadTwins();
     const initialLength = this.twins.length;
-    this.twins = this.twins.filter(twin => twin.$dtId !== twinId);
+    this.twins = this.twins.filter((twin) => twin.$dtId !== twinId);
     if (this.twins.length === initialLength) {
       throw new Error(`Twin with ID ${twinId} not found.`);
     }
@@ -191,8 +193,8 @@ class ApiService {
   async getRelationships(twinId) {
     await this.loadTwins();
     const relationships = this.twins
-      .filter(twin => twin.$sourceId === twinId || twin.$targetId === twinId)
-      .map(twin => twin.relationships || []);
+      .filter((twin) => twin.$sourceId === twinId || twin.$targetId === twinId)
+      .map((twin) => twin.relationships || []);
     return relationships.flat();
   }
 
@@ -203,13 +205,13 @@ class ApiService {
    */
   async deleteRelationship(twinId, relationshipId) {
     await this.loadTwins();
-    const twin = this.twins.find(t => t.$dtId === twinId);
+    const twin = this.twins.find((t) => t.$dtId === twinId);
     if (!twin || !twin.relationships) {
       throw new Error(`Twin or relationships for twin ID ${twinId} not found.`);
     }
     const initialLength = twin.relationships.length;
     twin.relationships = twin.relationships.filter(
-      rel => rel.$relationshipId !== relationshipId
+      (rel) => rel.$relationshipId !== relationshipId
     );
     if (twin.relationships.length === initialLength) {
       throw new Error(`Relationship with ID ${relationshipId} not found.`);
@@ -218,7 +220,6 @@ class ApiService {
     // eslint-disable-next-line no-console
     console.log(`Relationship with ID ${relationshipId} deleted successfully.`);
   }
-
 }
 
 export const apiService = new ApiService();

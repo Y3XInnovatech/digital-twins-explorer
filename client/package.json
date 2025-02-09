@@ -45,7 +45,6 @@
     "react-i18next": "^11.8.13",
     "react-router-dom": "^5.1.2",
     "react-scripts": "^4.0.1",
-    "sass": "^1.32.4",
     "system": "^2.0.1",
     "to-json-schema": "^0.2.5",
     "typescript": "^3.7.5",
@@ -59,7 +58,7 @@
   },
   "scripts": {
     "preinstall": "npx npm-force-resolutions",
-    "start": "react-scripts start",
+    "start": "react-scripts --max_old_space_size=8192 start",
     "build": "react-scripts --max_old_space_size=8192 build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -86,7 +85,8 @@
     "@typescript-eslint/parser": "^4.0.0",
     "eslint": "^7.5.0",
     "eslint-plugin-react": "^7.20.3",
-    "npm-force-resolutions": "0.0.10"
+    "npm-force-resolutions": "0.0.10",
+    "sass": "^1.32.0"
   },
   "engines": {
     "node": ">=10"

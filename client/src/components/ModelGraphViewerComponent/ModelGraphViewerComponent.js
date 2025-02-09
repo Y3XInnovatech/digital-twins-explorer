@@ -10,7 +10,6 @@ import { eventService } from "../../services/EventService";
 import "./ModelGraphViewerComponent.scss";
 
 class ModelGraphViewerComponent extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -18,7 +17,7 @@ class ModelGraphViewerComponent extends React.Component {
       // eslint-disable-next-line react/no-unused-state
       layout: "d3Force",
       // eslint-disable-next-line line-comment-position, no-inline-comments, react/no-unused-state
-      progress: 0 // Track progress for loading
+      progress: 0, // Track progress for loading
     };
     this.cyRef = React.createRef();
     // eslint-disable-next-line line-comment-position, no-inline-comments
@@ -42,7 +41,7 @@ class ModelGraphViewerComponent extends React.Component {
         this.setState({ isLoading: false });
       });
 
-      eventService.subscribeSelectModel(item => {
+      eventService.subscribeSelectModel((item) => {
         if (item) {
           this.highlightNodes(item.key);
         } else {
@@ -57,75 +56,56 @@ class ModelGraphViewerComponent extends React.Component {
 
   // Method to fetch models and update the graph
   async retrieveModels() {
-    // eslint-disable-next-line react/no-unused-state
     this.setState({ isLoading: true, progress: 0 });
 
     try {
-      // eslint-disable-next-line no-console
-      console.log("Starting retrieveModels...");
-
-      // Fetch models from the API
       const response = await fetch("/models");
       if (!response.ok) {
         throw new Error(`Error fetching models: ${response.statusText}`);
       }
 
       const models = await response.json();
-      // eslint-disable-next-line no-console
-      console.log("Fetched models:", models);
 
       if (!Array.isArray(models)) {
         throw new Error("Invalid models data: Expected an array.");
       }
 
       // Transform models into nodes and relationships
-      const nodes = models.map(model => ({
+      const nodes = models.map((model) => ({
         id: model.id,
-        label: model.name || model.id
+        displayName: model.displayName.en || model.id, // Use displayName if available
       }));
 
       const relationships = models.flatMap(
-        model =>
-          model.relationships?.map(rel => ({
-            sourceId: model.id,
-            targetId: rel.target,
-            relationshipName: rel.name
-          })) || []
+        (model) =>
+          model.model.contents
+            ?.filter((content) => content["@type"] === "Relationship")
+            .map((rel) => ({
+              sourceId: model.id,
+              targetId: rel.target,
+              relationshipName: rel.name,
+            })) || []
       );
 
-      // eslint-disable-next-line no-console
-      console.log("Nodes:", nodes);
-      // eslint-disable-next-line no-console
-      console.log("Relationships:", relationships);
-
-      // Update the graph
       if (this.cyRef.current) {
-        // eslint-disable-next-line line-comment-position, no-inline-comments
-        this.cyRef.current.clearNodes(); // Clear existing nodes
-        // eslint-disable-next-line line-comment-position, no-inline-comments
-        this.cyRef.current.addNodes(nodes); // Add new nodes
-        // eslint-disable-next-line line-comment-position, no-inline-comments
-        this.cyRef.current.addRelationships(relationships, "related"); // Add relationships
-        // eslint-disable-next-line line-comment-position, no-inline-comments
-        await this.cyRef.current.doLayout(); // Perform layout
+        this.cyRef.current.clearNodes();
+        this.cyRef.current.addNodes(nodes);
+        this.cyRef.current.addRelationships(relationships, "related");
+        await this.cyRef.current.doLayout();
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error("Error in retrieveModels:", err);
       eventService.publishError(err);
     } finally {
-      // eslint-disable-next-line react/no-unused-state
       this.setState({ isLoading: false, progress: 100 });
-      // eslint-disable-next-line no-console
-      console.log("Finished retrieveModels.");
     }
   }
 
   // Highlight nodes (e.g., on selection)
-  highlightNodes = nodeId => {
+  highlightNodes = (nodeId) => {
     if (this.cyRef.current) {
       this.cyRef.current.clearHighlighting();
-      this.cyRef.current.highlightNodes([ { id: nodeId } ], true);
+      this.cyRef.current.highlightNodes([{ id: nodeId }], true);
     }
   };
 
@@ -155,7 +135,6 @@ class ModelGraphViewerComponent extends React.Component {
       </div>
     );
   }
-
 }
 
 export default ModelGraphViewerComponent;
