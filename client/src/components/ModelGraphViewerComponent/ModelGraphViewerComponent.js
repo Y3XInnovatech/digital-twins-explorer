@@ -70,12 +70,13 @@ class ModelGraphViewerComponent extends React.Component {
         throw new Error("Invalid models data: Expected an array.");
       }
 
-      // Transform models into nodes and relationships
+      // Transform models into nodes
       const nodes = models.map((model) => ({
         id: model.id,
         displayName: model.displayName.en || model.id, // Use displayName if available
       }));
 
+      // Parse regular relationships
       const relationships = models.flatMap(
         (model) =>
           model.model.contents
@@ -84,13 +85,28 @@ class ModelGraphViewerComponent extends React.Component {
               sourceId: model.id,
               targetId: rel.target,
               relationshipName: rel.name,
+              type: "relationship", // Mark as a regular relationship
             })) || []
       );
+
+      // Parse inheritance relationships (extends)
+      const inheritanceRelationships = models.flatMap(
+        (model) =>
+          model.model.extends?.map((baseModel) => ({
+            sourceId: model.id,
+            targetId: baseModel,
+            relationshipName: "extends",
+            type: "inheritance", // Mark as an inheritance relationship
+          })) || []
+      );
+
+      // Combine both types of relationships
+      const allRelationships = [...relationships, ...inheritanceRelationships];
 
       if (this.cyRef.current) {
         this.cyRef.current.clearNodes();
         this.cyRef.current.addNodes(nodes);
-        this.cyRef.current.addRelationships(relationships, "related");
+        this.cyRef.current.addRelationships(allRelationships, "related");
         await this.cyRef.current.doLayout();
       }
     } catch (err) {

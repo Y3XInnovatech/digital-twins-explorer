@@ -123,18 +123,16 @@ export class ModelGraphViewerCytoscapeComponent extends React.Component {
   }
 
   addRelationships(relationships, relationshipClassName = "") {
-    const mapped = relationships
-      .map((x) => ({
-        data: {
-          source: x.sourceId,
-          target: x.targetId,
-          label: x.relationshipName,
-          relationshipId: x.relationshipId,
-          id: `${x.sourceId}_${x.targetId}_${x.relationshipName}`,
-        },
-        classes: relationshipClassName,
-      }))
-      .filter((x) => this.graphControl.$id(x.id).length === 0);
+    const mapped = relationships.map((rel) => ({
+      data: {
+        source: rel.sourceId,
+        target: rel.targetId,
+        label: rel.relationshipName,
+        relationshipId: `${rel.sourceId}_${rel.targetId}_${rel.relationshipName}`,
+        type: rel.type,
+      },
+      classes: rel.type === "inheritance" ? "extends" : relationshipClassName,
+    }));
 
     const checked = [];
     for (const rel of mapped) {
