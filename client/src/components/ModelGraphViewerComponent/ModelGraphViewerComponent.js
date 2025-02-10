@@ -3,21 +3,38 @@
 
 import React from "react";
 
-import { ModelGraphViewerCytoscapeComponent } from "./ModelGraphViewerCytoscapeComponent/ModelGraphViewerCytoscapeComponent";
+import {
+  ModelGraphViewerCytoscapeComponent,
+  ModelGraphViewerCytoscapeLayouts,
+} from "./ModelGraphViewerCytoscapeComponent/ModelGraphViewerCytoscapeComponent";
+import ModelGraphViewerFilteringComponent from "./ModelGraphViewerFilteringComponent/ModelGraphViewerFilteringComponent";
+import ModelGraphViewerRelationshipsToggle from "./ModelGraphViewerRelationshipsToggle/ModelGraphViewerRelationshipsToggle";
 import LoaderComponent from "../LoaderComponent/LoaderComponent";
 import { eventService } from "../../services/EventService";
-
+import { withTranslation } from "react-i18next";
 import "./ModelGraphViewerComponent.scss";
+import { ModelGraphViewerModelDetailComponent } from "./ModelGraphViewerModelDetailComponent/ModelGraphViewerModelDetailComponent";
+import { Icon } from "office-ui-fabric-react";
+import { DETAIL_MIN_WIDTH } from "../../services/Constants";
+import ModelGraphViewerCommandBarComponent from "./ModelGraphViewerCommandBarComponent/ModelGraphViewerCommandBarComponent";
+
 
 class ModelGraphViewerComponent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      progress: 0,
       isLoading: false,
-      // eslint-disable-next-line react/no-unused-state
+      filterIsOpen: false,
+      modelDetailIsOpen: false,
+      showRelationships: true,
+      showInheritances: true,
+      showComponents: true,
+      highlightingTerms: [],
+      filteringTerms: [],
+      modelDetailWidth: DETAIL_MIN_WIDTH,
       layout: "d3Force",
-      // eslint-disable-next-line line-comment-position, no-inline-comments, react/no-unused-state
-      progress: 0, // Track progress for loading
+      selectedModel: null,
     };
     this.cyRef = React.createRef();
     // eslint-disable-next-line line-comment-position, no-inline-comments
@@ -139,18 +156,109 @@ class ModelGraphViewerComponent extends React.Component {
   }
 
   render() {
-    const { isLoading } = this.state;
+    const {
+      isLoading,
+      progress,
+      filterIsOpen,
+      showRelationships,
+      showInheritances,
+      showComponents,
+      highlightingTerms,
+      modelDetailIsOpen,
+      modelDetailWidth,
+      filteringTerms,
+      layout,
+    } = this.state;
 
     return (
-      <div className="mgv-wrap">
-        <div className="model-graph">
-          {/* Pass the ref to the Cytoscape component */}
-          <ModelGraphViewerCytoscapeComponent ref={this.cyRef} />
+      <div
+        className={`mgv-wrap ${modelDetailIsOpen ? "md-open" : "md-closed"}`}
+      >
+        <div
+          className={`model-graph gc-grid ${filterIsOpen ? "open" : "closed"}`}
+        >
+          <div className="gc-wrap">
+            <ModelGraphViewerRelationshipsToggle
+              setFirstItemRef={(ref) => (this.relationshipsToggle = ref)}
+              onKeyDown={() => null}
+              onRelationshipsToggleChange={this.onRelationshipsToggleChange}
+              onInheritancesToggleChange={this.onInheritancesToggleChange}
+              onComponentsToggleChange={this.onComponentsToggleChange}
+              showRelationships={showRelationships}
+              showInheritances={showInheritances}
+              showComponents={showComponents}
+            />
+            <div className="gc-toolbar">
+              <ModelGraphViewerCommandBarComponent
+                className="gc-commandbar"
+                buttonClass="gc-toolbarButtons"
+                layouts={Object.keys(ModelGraphViewerCytoscapeLayouts)}
+                layout={layout}
+                onLayoutChanged={this.onLayoutChanged}
+              />
+            </div>
+            <ModelGraphViewerCytoscapeComponent
+              onNodeClicked={this.onNodeClicked}
+              layout={layout}
+              onControlClicked={this.onControlClicked}
+              onNodeMouseEnter={this.onNodeMouseEnter}
+              onEdgeMouseEnter={this.onEdgeMouseEnter}
+              isHighlighting={highlightingTerms && highlightingTerms.length > 0}
+              highlightFilteredNodes={this.highlightFilteredNodes}
+              ref={this.cyRef}
+            />
+          </div>
+          <div className="gc-filter">
+            <ModelGraphViewerFilteringComponent
+              toggleFilter={this.toggleFilter}
+              onZoomIn={this.onZoomIn}
+              onZoomOut={this.onZoomOut}
+              onZoomToFit={this.onZoomToFit}
+              onAddHighlightingTerm={this.onAddHighlightingTerm}
+              onRemoveHighlightingTerm={this.onRemoveHighlightingTerm}
+              onAddFilteringTerm={this.onAddFilteringTerm}
+              onRemoveFilteringTerm={this.onRemoveFilteringTerm}
+              onUpdateFilteringTerm={this.onUpdateFilteringTerm}
+              onUpdateHighlightingTerm={this.onUpdateHighlightingTerm}
+              highlightingTerms={highlightingTerms}
+              filteringTerms={filteringTerms}
+              onSwitchFilters={this.onSwitchFilters}
+            />
+          </div>
+          {isLoading && (
+            <LoaderComponent message={`${Math.round(progress)}%`} />
+          )}
         </div>
-        {isLoading && <LoaderComponent />}
+        <div
+          className="model-detail"
+          style={{ width: modelDetailIsOpen ? `${modelDetailWidth}%` : 0 }}
+        >
+          <div
+            className="detail-toggle"
+            onClick={this.toggleModelDetail}
+            tabIndex="0"
+            onKeyDown={this.handleToggleModelDetailOnEnter}
+          >
+            <Icon
+              className="toggle-icon"
+              iconName={
+                modelDetailIsOpen ? "DoubleChevronRight" : "DoubleChevronLeft"
+              }
+              aria-label={this.props.t("modelGraphViewerComponent.toggleIcon")}
+              role="button"
+              title="Expand/Collapse"
+            />
+          </div>
+          <ModelGraphViewerModelDetailComponent ref={this.modelDetail} />
+          {modelDetailIsOpen && (
+            <div className="dragable" onMouseDown={this.handleMouseDown} />
+          )}
+        </div>
       </div>
     );
   }
 }
 
-export default ModelGraphViewerComponent;
+export default withTranslation("translation", { withRef: true })(
+  ModelGraphViewerComponent
+);
